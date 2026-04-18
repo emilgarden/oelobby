@@ -15,8 +15,7 @@ body {
 }
 
 /*
- * iOS (Safari, Chrome, Vivaldi … = WebKit) zoomer inn på fokus når input-font < 16px.
- * iPhone i landskap er ofte >640px bred, så vi bruker alltid 16px her (trygg mot zoom).
+ * Kommandolinje: 16px + contentEditable (ikke <input>) unngår iOS WebKit «form zoom».
  */
 .terminal-input-row {
   font-size: 16px;
@@ -24,8 +23,10 @@ body {
 }
 
 .terminal-input {
-  -webkit-appearance: none;
-  appearance: none;
+  cursor: text;
+  min-height: 1.65em;
+  -webkit-user-select: text;
+  user-select: text;
   border-radius: 0;
   font-size: 16px !important;
   line-height: 1.65 !important;

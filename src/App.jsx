@@ -22,7 +22,8 @@ const S_FRAME = {
   borderRadius: 8,
   border: "1px solid #1a2a1a",
   position: "relative",
-  overflow: "hidden",
+  /* overflow:hidden + fokus iOS gir ofte «zoom»/hopp; overlayene har pointer-events:none */
+  overflow: "visible",
   boxShadow: "inset 0 0 80px rgba(20,60,20,.15),0 0 40px rgba(30,80,30,.08)",
 };
 const S_SCAN = {
@@ -60,12 +61,13 @@ const S_INPUT = {
   fontSize: "16px",
   lineHeight: 1.65,
   width: "100%",
+  minWidth: 0,
   padding: 0,
   outline: "none",
   caretColor: K.grn,
-  WebkitAppearance: "none",
-  appearance: "none",
   borderRadius: 0,
+  whiteSpace: "pre-wrap",
+  wordBreak: "break-word",
 };
 const S_FOOTER = {
   marginTop: 40,
@@ -126,6 +128,30 @@ export default function App() {
     setTimeout(tick, 300);
   }, []);
 
+  useEffect(
+    function () {
+      if (!boot || !ir.current) return;
+      const el = ir.current;
+      el.focus();
+      try {
+        const r = document.createRange();
+        if (el.childNodes.length === 0) {
+          el.appendChild(document.createTextNode(""));
+        }
+        r.selectNodeContents(el);
+        r.collapse(false);
+        const s = window.getSelection();
+        if (s) {
+          s.removeAllRanges();
+          s.addRange(r);
+        }
+      } catch {
+        /* caret i tomt felt varierer mellom motorer */
+      }
+    },
+    [boot],
+  );
+
   useEffect(function () {
     if (!sr.current) return;
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
@@ -133,9 +159,15 @@ export default function App() {
     sr.current.scrollIntoView({ behavior: reduce || !fine ? "auto" : "smooth", block: "end" });
   }, [hist]);
 
+  const readCmd = useCallback(function () {
+    const el = ir.current;
+    const raw = el && el.textContent !== undefined && el.textContent !== null ? el.textContent : val;
+    return String(raw).replace(/[\r\n\u200b]/g, "").trim();
+  }, [val]);
+
   const submit = useCallback(function () {
     if (!boot) return;
-    const v = val.trim();
+    const v = readCmd();
     if (!v) return;
     const il = { t: "in", x: v, gm: game.on };
 
@@ -145,6 +177,7 @@ export default function App() {
       });
       setCi(-1);
       setVal("");
+      if (ir.current) ir.current.textContent = "";
     };
 
     if (game.on) {
@@ -192,7 +225,12 @@ export default function App() {
       });
     }
     flushInput();
-  }, [val, boot, game]);
+  }, [val, boot, game, readCmd]);
+
+  const syncHistoryToField = useCallback(function (next) {
+    setVal(next);
+    if (ir.current) ir.current.textContent = next;
+  }, []);
 
   const kd = function (e) {
     if (e.key === "Enter") {
@@ -203,19 +241,43 @@ export default function App() {
       if (ch.length > 0) {
         const n = Math.min(ci + 1, ch.length - 1);
         setCi(n);
-        setVal(ch[n]);
+        syncHistoryToField(ch[n]);
       }
     } else if (e.key === "ArrowDown") {
       e.preventDefault();
       if (ci > 0) {
-        setCi(ci - 1);
-        setVal(ch[ci - 1]);
+        const n = ci - 1;
+        setCi(n);
+        syncHistoryToField(ch[n]);
       } else {
         setCi(-1);
-        setVal("");
+        syncHistoryToField("");
       }
     }
   };
+
+  const onCmdInput = useCallback(function (e) {
+    const el = e.currentTarget;
+    let t = el.textContent || "";
+    t = t.replace(/[\r\n]/g, "");
+    if (el.textContent !== t) el.textContent = t;
+    setVal(t);
+    setCi(-1);
+  }, []);
+
+  const onCmdPaste = useCallback(function (e) {
+    e.preventDefault();
+    const text = (e.clipboardData.getData("text/plain") || "").replace(/[\r\n]/g, " ");
+    try {
+      document.execCommand("insertText", false, text);
+    } catch {
+      const el = e.currentTarget;
+      const cur = el.textContent || "";
+      el.textContent = cur + text;
+      setVal(el.textContent);
+    }
+    setCi(-1);
+  }, []);
 
   const pc = game.on ? K.cyn : K.prm;
   const dotGame = game.on ? K.cyn : K.grn;
@@ -250,23 +312,17 @@ export default function App() {
           {boot && (
             <div className="terminal-input-row" style={S_INPUT_ROW}>
               <span style={{ color: pc, userSelect: "none", flexShrink: 0 }} aria-hidden="true">{">"}</span>
-              <input
+              <div
                 ref={ir}
                 className="terminal-input"
-                type="text"
-                inputMode="text"
-                enterKeyHint="go"
-                value={val}
-                onChange={function (e) {
-                  setVal(e.target.value);
-                  setCi(-1);
-                }}
+                contentEditable
+                suppressContentEditableWarning
+                role="textbox"
+                aria-multiline="false"
+                onInput={onCmdInput}
+                onPaste={onCmdPaste}
                 onKeyDown={kd}
-                autoFocus
-                autoCapitalize="none"
-                autoCorrect="off"
-                autoComplete="off"
-                spellCheck="false"
+                spellCheck={false}
                 aria-label="Kommando"
                 style={S_INPUT}
               />
