@@ -4,9 +4,35 @@
   box-sizing: border-box;
 }
 
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
 body {
   background: #0a0e0a;
   -webkit-font-smoothing: antialiased;
+}
+
+/*
+ * iOS Safari zoomer inn på fokus når input-font er < 16px.
+ * På smal skjerm bruker vi 16px for prompt-raden slik at «terminal»-oversikt beholdes.
+ */
+.terminal-input-row {
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.terminal-input {
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+@media (max-width: 640px) {
+  .terminal-input-row,
+  .terminal-input {
+    font-size: 16px;
+    line-height: 1.65;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

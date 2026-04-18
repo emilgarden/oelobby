@@ -4,19 +4,20 @@ import { sCmd } from "./shell.js";
 import { Line } from "./Line.jsx";
 
 const S_ROOT = {
-  minHeight: "100vh",
+  minHeight: "100dvh",
   background: K.bg,
   display: "flex",
   alignItems: "flex-start",
   justifyContent: "center",
-  padding: "20px 12px 40px",
+  padding: "20px 12px max(40px, env(safe-area-inset-bottom))",
   fontFamily: FONT,
   cursor: "text",
+  touchAction: "manipulation",
 };
 const S_FRAME = {
   width: "100%",
   maxWidth: 720,
-  minHeight: "calc(100vh - 60px)",
+  minHeight: "calc(100dvh - 60px)",
   background: K.scr,
   borderRadius: 8,
   border: "1px solid #1a2a1a",
@@ -50,16 +51,14 @@ const S_HEADER = {
 const S_TITLE = { color: K.gf, fontSize: 10, fontFamily: FONT, letterSpacing: "0.1em" };
 const S_DOTS = { display: "flex", gap: 6 };
 const S_DOT = { width: 8, height: 8, borderRadius: "50%", opacity: 0.6 };
-const S_INPUT_ROW = { display: "flex", alignItems: "center", gap: 8, fontSize: 13, minHeight: 44 };
+const S_INPUT_ROW = { display: "flex", alignItems: "center", gap: 8, minHeight: 44 };
 const S_INPUT = {
   background: "transparent",
   border: "none",
   color: K.grn,
   fontFamily: FONT,
-  fontSize: 13,
   width: "100%",
   padding: 0,
-  lineHeight: 1.8,
   outline: "none",
   caretColor: K.grn,
 };
@@ -123,7 +122,10 @@ export default function App() {
   }, []);
 
   useEffect(function () {
-    if (sr.current) sr.current.scrollIntoView({ behavior: "smooth", block: "end" });
+    if (!sr.current) return;
+    const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const fine = window.matchMedia("(pointer: fine)").matches;
+    sr.current.scrollIntoView({ behavior: reduce || !fine ? "auto" : "smooth", block: "end" });
   }, [hist]);
 
   const submit = useCallback(function () {
@@ -241,11 +243,14 @@ export default function App() {
           </div>
 
           {boot && (
-            <div style={S_INPUT_ROW}>
+            <div className="terminal-input-row" style={S_INPUT_ROW}>
               <span style={{ color: pc, userSelect: "none", flexShrink: 0 }} aria-hidden="true">{">"}</span>
               <input
                 ref={ir}
+                className="terminal-input"
                 type="text"
+                inputMode="text"
+                enterKeyHint="go"
                 value={val}
                 onChange={function (e) {
                   setVal(e.target.value);
@@ -257,7 +262,6 @@ export default function App() {
                 autoCorrect="off"
                 autoComplete="off"
                 spellCheck="false"
-                enterKeyHint="go"
                 aria-label="Kommando"
                 style={S_INPUT}
               />
