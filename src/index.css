@@ -14,25 +14,17 @@ body {
 }
 
 /*
- * iOS Safari zoomer inn på fokus når input-font er < 16px.
- * På smal skjerm bruker vi 16px for prompt-raden slik at «terminal»-oversikt beholdes.
+ * iOS (Safari, Chrome, Vivaldi … = WebKit) zoomer inn på fokus når input-font < 16px.
+ * iPhone i landskap er ofte >640px bred, så vi bruker alltid 16px her (trygg mot zoom).
  */
 .terminal-input-row {
-  font-size: 13px;
-  line-height: 1.8;
+  font-size: 16px;
+  line-height: 1.65;
 }
 
 .terminal-input {
-  font-size: 13px;
-  line-height: 1.8;
-}
-
-@media (max-width: 640px) {
-  .terminal-input-row,
-  .terminal-input {
-    font-size: 16px;
-    line-height: 1.65;
-  }
+  font-size: 16px !important;
+  line-height: 1.65 !important;
 }
 
 @media (prefers-reduced-motion: reduce) {
