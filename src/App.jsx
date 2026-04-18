@@ -57,10 +57,15 @@ const S_INPUT = {
   border: "none",
   color: K.grn,
   fontFamily: FONT,
+  fontSize: "16px",
+  lineHeight: 1.65,
   width: "100%",
   padding: 0,
   outline: "none",
   caretColor: K.grn,
+  WebkitAppearance: "none",
+  appearance: "none",
+  borderRadius: 0,
 };
 const S_FOOTER = {
   marginTop: 40,

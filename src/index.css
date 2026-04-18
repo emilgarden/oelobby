@@ -5,6 +5,7 @@
 }
 
 html {
+  font-size: 16px;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -23,6 +24,15 @@ body {
 }
 
 .terminal-input {
+  -webkit-appearance: none;
+  appearance: none;
+  border-radius: 0;
+  font-size: 16px !important;
+  line-height: 1.65 !important;
+}
+
+.terminal-input:focus,
+.terminal-input:focus-visible {
   font-size: 16px !important;
   line-height: 1.65 !important;
 }
