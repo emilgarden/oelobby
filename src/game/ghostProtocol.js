@@ -148,7 +148,7 @@ export function gCmd(raw, g) {
   if (c === "les" || c === "read") {
     if (!a) return R([{ t: "dim", x: "Les hva?" }]);
     const mr = g.inv.find(function (id) {
-      return id.indexOf(a) === 0;
+      return id.indexOf(a) === 0 || ITEMS[id].n.toLowerCase().indexOf(a) === 0;
     });
     if (!mr) return R([{ t: "dim", x: "Du har ingen " + a + "." }]);
     if (mr === "log") return R([{ t: "g" }].concat(ITEMS.log.read.map(function (x) { return x === SEP ? { t: "sep" } : { t: "b", x: x }; })).concat([{ t: "g" }]));
